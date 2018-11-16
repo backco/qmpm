@@ -4,7 +4,10 @@ import java.time.Instant;
 
 public enum CrossValidationType {
 	None("None"),
-	KFold("k-Fold");
+	KFold("k-Fold"),
+	KFoldShuffle("k-fold, shuffled"),
+	KFoldNoTwin("k-fold, no twinning"),
+	KFoldShuffleNoTwin("k-fold, shuffled, no twinning");
 	
 	private String desc;
 	private int k = 1;

@@ -45,7 +45,7 @@ public class RunMINERful extends RunMiner {
 			log = xLog;
 		} else {
 			try {
-				log = XESTools.loadXES(path);
+				log = XESTools.loadXES(path, true);
 			} catch (FileLoadException e) {
 				e.printStackTrace();
 				throw e;
@@ -143,7 +143,7 @@ public class RunMINERful extends RunMiner {
 			numConstraints = simplifiedProcessModel.howManyConstraints();
 			
 		    model = new DeclarativeModel(simplifiedProcessModel);
-		    model.setName(getLabel().toString() + "_" + String.format("%.3f", confidence) + "-" + String.format("%.3f", interestFactor) + "-" + ((DeclarativeModel) model).getNumOfConstraints());
+		    model.setName(getLabel().toString() + "_" + String.format("%.3f", confidence) + "-" + String.format("%.3f", interestFactor) + "-" + ((DeclarativeModel) model).getModelSize());
 			//return new Metrics(modelFileName + ".xml", logFileName, FLATTEN_LOG);
 		}
 

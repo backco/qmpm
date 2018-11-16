@@ -55,7 +55,10 @@ public abstract class GenericProcessModel {
 	
 	public abstract String processTransition(String stateAbbrev, ElementLabel l) throws ProcessTransitionException;
 	public abstract ModelState getInitialState();
-	public abstract int getModelSize();
+	public abstract int getNumOfActivities();
+	public abstract int getNumOfNodes();
+	public abstract int getNumOfEdges();
+	public abstract boolean isEmpty();
 	//public String putState(ModelState s);
 	
 	public String currentStateAbbrev() {
@@ -105,5 +108,9 @@ public abstract class GenericProcessModel {
 	
 	public void setBuildTime(long t) {
 		buildTime = t;
+	}
+	
+	public int getModelSize() {
+		return (isEmpty() ? -1 : getNumOfNodes() + getNumOfEdges());
 	}
 }

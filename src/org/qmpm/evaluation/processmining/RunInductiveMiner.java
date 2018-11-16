@@ -26,7 +26,7 @@ public class RunInductiveMiner extends RunMiner {
 			imLog = xLog;
 		} else {
 			try {
-				imLog = XESTools.loadXES(path);
+				imLog = XESTools.loadXES(path, true);
 			} catch (FileLoadException e) {
 				e.printStackTrace();
 				throw e;

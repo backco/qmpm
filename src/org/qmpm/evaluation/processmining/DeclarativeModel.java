@@ -7,6 +7,7 @@ import org.qmpm.evaluation.processmining.Declare2DCR;
 import org.qmpm.logtrie.elementlabel.ElementLabel;
 import org.qmpm.logtrie.exceptions.ProcessTransitionException;
 
+import datamodel.Graph;
 import minerful.concept.ProcessModel;
 import net.dcrgraphs.core.Automata;
 import net.dcrgraphs.core.DCRGraph;
@@ -93,6 +94,7 @@ public class DeclarativeModel extends GenericProcessModel {
 	private Automata autModel = null;
 	private DCRGraph dcrGraph = null;
 	private final ModelState initialState;
+	private final int numOfActivities;
 	
 	public DeclarativeModel(DCRGraph dg) {
 		
@@ -103,6 +105,7 @@ public class DeclarativeModel extends GenericProcessModel {
 		currentState = new DeclarativeState(dcrGraph.marking);
 		initialState = currentState;
 		currentStateAbbrev = getStateAbbrev(currentState);
+		numOfActivities = dg.getActivities().size();
 	}
 	
 	public DeclarativeModel(DeclareMinerOutput declareMap) {
@@ -111,6 +114,7 @@ public class DeclarativeModel extends GenericProcessModel {
 		currentState = new DeclarativeState(autModel.currentState());
 		initialState = currentState;
 		currentStateAbbrev = getStateAbbrev(currentState);
+		numOfActivities = declareMap.getAllActivities().size();
 	}
 
 	public DeclarativeModel(ProcessModel minerfulModel) {
@@ -119,6 +123,8 @@ public class DeclarativeModel extends GenericProcessModel {
 		currentState = new DeclarativeState(autModel.currentState());
 		initialState = currentState;
 		currentStateAbbrev = getStateAbbrev(currentState);
+		
+		numOfActivities = minerfulModel.getProcessAlphabet().size();
 	}
 	
 	public ModelState getInitialState() {
@@ -163,20 +169,34 @@ public class DeclarativeModel extends GenericProcessModel {
 
 	public int getNumOfConstraints() {
 		
-		if (autModel != null) {
-			return autModel.getNumOfAutomata();
-		} else if (dcrGraph != null) {
-			return dcrGraph.getNumOfRelations();
-		} else return -1;
-	}
-
-	@Override
-	public int getModelSize() {
-		
 		if (autModel == null && dcrGraph != null) {
 			return dcrGraph.getNumOfRelations();
 		} else if (autModel != null && dcrGraph == null) {
 			return autModel.getNumOfAutomata();
 		} else return -1;
 	}
+
+
+	@Override
+	public int getNumOfActivities() {
+		return numOfActivities;
+	}
+
+	
+	@Override
+	public int getNumOfNodes() {
+		return getNumOfActivities();
+	}
+
+	
+	@Override
+	public int getNumOfEdges() {
+		return getNumOfConstraints();
+	}
+
+	@Override
+	public boolean isEmpty() {
+		return (autModel == null && dcrGraph == null);
+	}
+
 }

@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 
+import org.deckfour.xes.model.XEvent;
 import org.deckfour.xes.model.XLog;
 import org.deckfour.xes.model.XTrace;
 import org.qmpm.evaluation.core.ModelFramework;
@@ -29,6 +30,8 @@ import org.qmpm.logtrie.exceptions.LabelTypeException;
 import org.qmpm.logtrie.exceptions.ProcessTransitionException;
 import org.qmpm.logtrie.trie.AbstractTrieMediator;
 import org.qmpm.logtrie.trie.Trie;
+import org.qmpm.logtrie.trie.Trie.Node;
+import org.qmpm.logtrie.trie.TrieImpl;
 //import org.qmpm.logtrie.trie.TrieImpl;
 //import org.qmpm.logtrie.trie.AbstractTrieMediator.TrieAttributes;
 import org.qmpm.logtrie.metrics.Metric;
@@ -127,7 +130,25 @@ public class ModelTrieMediator extends AbstractTrieMediator {
 			cvProgThread.start();
 			
 			tries.remove(t);
-			FileInfo<T> mainFile = ta.getFile(); 
+			FileInfo<T> mainFile = ta.getFile();
+			
+			mainFile.sort();
+			
+			if (mainFile.getLoadedFile() instanceof XLog) {
+				if (!XESTools.isSorted((XLog) mainFile.getLoadedFile())) {
+					Framework.permitOutput();
+					System.out.println("This is a temporary fix: The XLog was found to be unordered immediately prior to partitioning for cross-validation as would be expected. Aborting...");
+					System.exit(1);
+				}
+			} else {
+				Framework.permitOutput();
+				System.out.println("This is a temporary fix: Expected XLog for cross-validation, received: " + mainFile.getLoadedFile().getClass().getSimpleName() + ". Aborting...");
+				System.exit(1);
+			}
+			
+			if (cvType.equals(CrossValidationType.KFoldShuffle) || cvType.equals(CrossValidationType.KFoldShuffleNoTwin)) {
+				mainFile.shuffle();
+			}
 			String mainFileDir = mainFile.getFile().getParent();
 			String mainFileName = mainFile.getFile().getName();
 			String timeStamp = Instant.now().toString().replaceAll(":", "-"); 			
@@ -165,26 +186,16 @@ public class ModelTrieMediator extends AbstractTrieMediator {
 					training.append(part);
 				}
 
-				/*
-				try {
-					training.saveAs(trainingPath);
-				} catch (FileNotFoundException e1) {
-					e1.printStackTrace();
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
-				
-				try {
-					validation.saveAs(validationPath);
-				} catch (FileNotFoundException e1) {
-					e1.printStackTrace();
-				} catch (IOException e1) {
-					e1.printStackTrace();
-				}
-				*/
-
 				Trie trainingTrie = new ModelTrie();
 				Trie validationTrie = new ModelTrie();
+				
+				try {
+					t.addElementLabels(XESTools.getAllActivities((XLog) ta.getFile().getLoadedFile()));
+				} catch (LabelTypeException e2) {
+					System.out.println(e2.getMessage());
+					e2.printStackTrace();
+				}
+				validationTrie.setAssociatedTrie(t);
 				
 				ModelTrieAttributes<T> trainingTA =  new ModelTrieAttributes(trainingTrie, training.getName(), training);
 				ModelTrieAttributes<T> validationTA =  new ModelTrieAttributes(validationTrie, validation.getName(), validation);
@@ -222,6 +233,38 @@ public class ModelTrieMediator extends AbstractTrieMediator {
 					((ModelTrie) validationTrie).setup(cvMiner.getModel());
 					validationTA.setInfo(cvMiner.toString());
 					//validationTA.setName(validationTA.getName());
+				}
+				
+				if (cvType.equals(CrossValidationType.KFoldNoTwin) || cvType.equals(CrossValidationType.KFoldShuffleNoTwin)) {
+					if (verbose) System.out.println("Looking for twins...");
+					setTrieAttributes(trainingTrie,trainingTA);
+					buildTrie(trainingTrie, false, (j+1), ta.getCVType().getK());
+					List<List<? extends Object>> twins = new ArrayList<>();
+					for (List<? extends Object> seq : validation.getLoadedFile()) {
+						if (verbose)
+							try {
+								System.out.println("seq: " + XESTools.xTraceToString((XTrace) seq ));
+							} catch (LabelTypeException e1) {
+								// TODO Auto-generated catch block
+								e1.printStackTrace();
+							}
+						Node n;
+						try {
+							n = trainingTrie.search( (List<Object>) seq);
+						} catch (LabelTypeException e) {
+							n = null;
+						}
+						if (n != null) {
+							if (verbose) System.out.println("Found a twin!");
+							twins.add(seq);
+						}
+						if (verbose) System.out.println(n);
+					}
+					
+					for (List<? extends Object> seq : twins) {
+						validation.getLoadedFile().remove(seq);
+					}
+					if (verbose) System.out.println("Removed " + twins.size() + " of " + (twins.size()+validation.getLoadedFile().size()) + " traces from validation set which also appear in training set");
 				}
 				
 				setTrieAttributes(validationTrie,validationTA);
@@ -300,6 +343,13 @@ public class ModelTrieMediator extends AbstractTrieMediator {
 		
 		for (FileInfo fi : files) {
 			
+			if (minerMap.keySet().isEmpty()) {
+				Trie t = new TrieImpl();					
+				ModelTrieAttributes trieAtt = new ModelTrieAttributes(t, fi.getName(), fi);
+				tries.add(t);
+				setTrieAttributes(t, trieAtt);
+			}
+			
 			for (MetricLabel l : minerMap.keySet()) {
 				
 				for (List<String> args : minerMap.get(l)) {
@@ -340,5 +390,17 @@ public class ModelTrieMediator extends AbstractTrieMediator {
 	public void setCrossValidation(CrossValidationType cv, int k) {
 		cv.setK(k);
 		cvType = cv;
+	}
+
+	@Override
+	protected boolean needToBuildTries() {
+		
+		for (MetricLabel m : getMetrics(EvaluationMetricLabel.class.getSimpleName()).keySet()) {
+			if ( !m.equals(EvaluationMetricLabel.ModelSize) && !m.equals(EvaluationMetricLabel.MiningTime_ms) ) {
+				return true;
+			}
+		}
+		
+		return false;
 	}
 }

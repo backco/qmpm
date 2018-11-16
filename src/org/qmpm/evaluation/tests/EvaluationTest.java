@@ -248,7 +248,7 @@ class EvaluationTest {
 		for (int i=1; i<=10; i++) {
 			XLog log = null;
 			try {
-				log = XESTools.loadXES("C:\\Users\\wvm405\\phd\\research\\code\\qmpm\\logs\\WIRES_log-training-" + i + ".xes");
+				log = XESTools.loadXES("C:\\Users\\wvm405\\phd\\research\\code\\qmpm\\logs\\WIRES_log-training-" + i + ".xes", true);
 			} catch (FileLoadException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();

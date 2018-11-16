@@ -32,7 +32,7 @@ public class MiningTime extends Metric {
 		
 		finished();
 		
-		value = (double) pm.getBuildTime() / 1000000000;
+		value = (double) pm.getBuildTime() / 1000000;
 		
  		return Outcome.SUCCESS;
 	}

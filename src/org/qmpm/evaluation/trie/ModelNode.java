@@ -14,6 +14,7 @@ public class ModelNode extends NodeImpl {
 	//private String state;
 	//private ModelState state;
 	private String stateAbbrev;
+	private int numValidMoves = -1;
 	
 	/*
 	ModelNode(ElementLabel parentEdgeLabel, Node parent, TrieImpl trie, ModelState s) {
@@ -23,13 +24,13 @@ public class ModelNode extends NodeImpl {
 	}
 	*/
 
-	ModelNode(ElementLabel parentEdgeLabel, Node parent, Trie trie, String stateAbbrev) {
+	ModelNode(ElementLabel parentEdgeLabel, Node parent, ModelTrie trie, String stateAbbrev) {
 		super(parentEdgeLabel, parent, trie);
 		this.stateAbbrev = stateAbbrev; 
 		// TODO Auto-generated constructor stub
 	}
 	
-	ModelNode(ElementLabel parentEdgeLabel, Node parent, Trie trie) {
+	ModelNode(ElementLabel parentEdgeLabel, Node parent, ModelTrie trie) {
 		super(parentEdgeLabel, parent, trie);
 	}
 	/*
@@ -85,5 +86,13 @@ public class ModelNode extends NodeImpl {
 	
 	public void setStateAbbrev(String s) {
 		stateAbbrev = s;
+	}
+	
+	public int getNumValidMoves() {
+		return numValidMoves;
+	}
+
+	public void setNumValidMoves(int n) {
+		numValidMoves = n;
 	}
 }

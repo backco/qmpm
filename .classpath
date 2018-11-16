@@ -37,5 +37,6 @@
 	<classpathentry kind="lib" path="lib/ProM-Models.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/MINERful"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/logtrie"/>
+	<classpathentry combineaccessrules="false" kind="src" path="/parnek"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

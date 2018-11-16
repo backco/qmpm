@@ -1,18 +1,19 @@
 package org.qmpm.evaluation.metrics;
 
-import java.util.Set;
+import java.util.List;
 
 import org.qmpm.evaluation.enums.EvaluationMetricLabel;
-import org.qmpm.evaluation.processmining.GenericProcessModel.ModelState;
-import org.qmpm.evaluation.trie.ModelNode;
+import org.qmpm.evaluation.processmining.GenericProcessModel;
+import org.qmpm.evaluation.processmining.RunFlowerMiner;
 import org.qmpm.evaluation.trie.ModelTrie;
-import org.qmpm.logtrie.elementlabel.ElementLabel;
+import org.qmpm.logtrie.core.Framework;
 import org.qmpm.logtrie.enums.MetricLabel;
 import org.qmpm.logtrie.enums.Outcome;
+import org.qmpm.logtrie.exceptions.FileLoadException;
 import org.qmpm.logtrie.exceptions.LabelTypeException;
 import org.qmpm.logtrie.metrics.Metric;
+import org.qmpm.logtrie.tools.XESTools;
 import org.qmpm.logtrie.trie.Trie;
-import org.qmpm.logtrie.trie.Trie.Node;
 
 public class PrecisionNormalized extends Metric {
 	
@@ -23,15 +24,27 @@ public class PrecisionNormalized extends Metric {
 		
 		modelName = ((ModelTrie) t).getModel().getName();
 		
+		GenericProcessModel origModel = ((ModelTrie) t).getModel();
+		
 		double P = 0.0;
 		double P_upper = 1.0;
 		double P_lower = 0.0;
 		
-		Precision prec = new Precision();  
+		Precision prec = new Precision();
 		prec.compute(t);
 		
-		PrecisionFlower precFlower = new PrecisionFlower();  
-		precFlower.compute(t);
+		Trie assocTrie = t.getAssociatedTrie() == null ? t : t.getAssociatedTrie();
+		RunFlowerMiner fm = new RunFlowerMiner();
+		fm.compute(assocTrie);
+
+		ModelTrie flowerTrie = new ModelTrie(fm.getModel());
+		
+		for (List<? extends Object> seq : t.rebuildSequences(false)) {
+			flowerTrie.insert(seq, false);
+		}
+		
+		Precision precFlower = new Precision();
+		precFlower.compute(flowerTrie);
 		
 		if (prec.getOutcome() == Outcome.SUCCESS) {
 			P = prec.getValue();
@@ -45,39 +58,6 @@ public class PrecisionNormalized extends Metric {
 			return precFlower.getOutcome();		
 		}
 		
-		double precision = 0;
-		Set<ElementLabel> en_L;
-		Set<String> en_M;
-		Set<Node> eventsAsNodes = t.getNodeSet(false);
-		//eventsAsNodes.remove(t.getRoot());
-		
-		int progress = 0;
-		int total = eventsAsNodes.size();
-		
-		/*
-		for (Node n : eventsAsNodes) {
-			ModelNode m = (ModelNode) n;
-
-			if (!m.getIsRoot()) {
-				ModelNode parent = (ModelNode) m.getParent();
-				
-				ModelState parState = ((ModelTrie) t).getModel().getState(parent.getStateAbbrev());
-				en_M = parState.getValidMoves();
-				en_L = parent.getChildEdgeLabels();
-				int count = m.getVisits();
-				precision += ((double) en_L.size() / en_M.size()) * count;
-			}
-			
-			// Update progress of associated Metric object, check for timeout or error
-			updateProgress((double) ++progress / total);
-			if (getOutcome() != Outcome.CONTINUE) {
-				return getOutcome();
-			}
-		}
-		*/
-
-		//int numOfEvents = t.getTotalVisits(false);
- 		
 		finished();
 		
 		value = ((double) P - P_lower) / (P_upper - P_lower);
@@ -98,5 +78,4 @@ public class PrecisionNormalized extends Metric {
 	public String parametersAsString() {
 		return "";
 	}
-
 }

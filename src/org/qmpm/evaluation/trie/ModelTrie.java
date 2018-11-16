@@ -6,6 +6,7 @@ import java.util.List;
 
 import org.qmpm.evaluation.processmining.GenericProcessModel;
 import org.qmpm.evaluation.processmining.GenericProcessModel.ModelState;
+import org.qmpm.logtrie.core.Framework;
 import org.qmpm.logtrie.elementlabel.ElementLabel;
 import org.qmpm.logtrie.exceptions.ProcessTransitionException;
 import org.qmpm.logtrie.trie.TrieImpl;
@@ -32,9 +33,12 @@ public class ModelTrie extends TrieImpl {
 
 	public void setup(GenericProcessModel pm) {
 		model = pm;
-		ModelState initialState = model.getInitialState();
-		((ModelNode) root).setStateAbbrev(model.getStateAbbrev(initialState));
-		initialState.addNode((ModelNode) root); 
+		if (model != null) {
+			ModelState initialState = model.getInitialState();
+			((ModelNode) root).setStateAbbrev(model.getStateAbbrev(initialState));
+			((ModelNode) root).setNumValidMoves(initialState.getValidMoves().size());
+			initialState.addNode((ModelNode) root);
+		}
 	}
 	
 	@Override
@@ -43,6 +47,11 @@ public class ModelTrie extends TrieImpl {
 	
 	@Override
 	public Node createNode(ElementLabel parentEdgeLabel, Node parent) throws ProcessTransitionException {
+		
+		if (model == null) {
+			System.out.println("model==null"); 
+			throw new ProcessTransitionException("Empty model!");
+		}
 		
 		String stateAbbrev = "S";
 		String parStateAbbrev = ((ModelNode) parent).getStateAbbrev();
@@ -53,12 +62,15 @@ public class ModelTrie extends TrieImpl {
 			failedTransitions++;
 			throw e;
 		}
-			
-		ModelNode node = new ModelNode(parentEdgeLabel, parent, this, stateAbbrev);
-		node.setStateAbbrev(stateAbbrev);
 		
 		ModelState state = model.getState(stateAbbrev);
 		ModelState parState = model.getState(parStateAbbrev);
+		ModelNode node = new ModelNode(parentEdgeLabel, parent, this, stateAbbrev);
+		node.setStateAbbrev(stateAbbrev);
+		node.setNumValidMoves(state.getValidMoves().size());
+		//Framework.permitOutput();
+		//System.out.println(state.getValidMoves());
+		//Framework.resetQuiet();
 		
 		state.addNode((ModelNode) node); 
 		parState.addOutgoingAct(parentEdgeLabel);
@@ -82,7 +94,7 @@ public class ModelTrie extends TrieImpl {
 				newFrontier.addAll((Collection<? extends Node>) node.getChildren().values());
 				for (Node child : node.getChildren().values()) {
 					ModelNode modChild = (ModelNode) child;
-					out += modChild.getParentEdgeLabel().toString() + "(" + modChild.getVisits() + ")[" + modChild.getStateAbbrev() + "], ";
+					out += modChild.getParentEdgeLabel().toString() + "(" + modChild.getVisits() + ")[" + modChild.getStateAbbrev() + "]" + (modChild.getIsEnd() ? "E" : " ") + ", ";
 				}
 				out += "  ";
 			}		
@@ -104,8 +116,13 @@ public class ModelTrie extends TrieImpl {
 	public GenericProcessModel getModel() {
 		return model;
 	}
+
+	public void setModel(GenericProcessModel pm) {
+		model = pm;
+	}
 	
 	public int getFailedTransitions() {
 		return failedTransitions;
 	}
+
 }

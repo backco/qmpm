@@ -135,7 +135,7 @@ public class ImperativeModel extends GenericProcessModel {
 	//private String log = "";
 	//private Map<MinerLabel.MinerOption, Number> minerParameters = new HashMap<MinerLabel.MinerOption, Number>();
 	//private Map<AttributeLabel, Number> modelAttributes = new HashMap<AttributeLabel, Number>();
-	private final Petrinet model;
+	private Petrinet model = null;
 	private EfficientPetrinetSemantics semantics;
 	private final Marking initialMarking;
 	private final ModelState initialState;
@@ -394,8 +394,24 @@ public class ImperativeModel extends GenericProcessModel {
 		return out;
 	}
 
+
 	@Override
-	public int getModelSize() {
-		return (model == null ? -1 : model.getEdges().size());
+	public int getNumOfActivities() {
+		return model.getTransitions().size();
+	}
+
+	@Override
+	public int getNumOfNodes() {
+		return model.getPlaces().size() + model.getTransitions().size();
+	}
+
+	@Override
+	public int getNumOfEdges() {
+		return model.getEdges().size();
+	}
+
+	@Override
+	public boolean isEmpty() {
+		return model == null;
 	}
 }
