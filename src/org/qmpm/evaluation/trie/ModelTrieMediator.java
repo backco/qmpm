@@ -50,6 +50,7 @@ public class ModelTrieMediator extends AbstractTrieMediator {
 
 		public static final String MINERS = "MINERS"; 
 		private Metric miner = null;
+		private boolean mineThisTrie = true;
 		private CrossValidationType cvType = CrossValidationType.None;
 		
 		ModelTrieAttributes(Trie t, String n, FileInfo<T> f) {
@@ -60,7 +61,8 @@ public class ModelTrieMediator extends AbstractTrieMediator {
 			return miner;
 		}
 
-		public void setMiner(Metric m) {
+		public void setMiner(Metric m, boolean mine) {
+			mineThisTrie = mine;
 			miner = m;
 			setInfo(m.toString());
 		}
@@ -115,6 +117,124 @@ public class ModelTrieMediator extends AbstractTrieMediator {
 	
 	@Override
 	protected <T extends Collection<? extends List<? extends Object>>> boolean beforeTrieBuild(ListIterator<Trie> trieIterator, Trie t, int current, int total, String format) {
+	
+		ModelTrieAttributes<T> ta =  (ModelTrieAttributes<T>) getTrieAttributes(t);
+		RunMiner m = (RunMiner) ta.getMiner();
+		
+		if (m != null) {
+			
+			ProgObsThread progThread = new ProgObsThread(progObs, m, showProgress);
+			
+			MetricThread metThread = new MetricThread(m, t);
+			
+			progThread.setCurrent(current);
+			progThread.setTotal(tries.size());
+			progThread.setPreLabel(preLabel);
+			progThread.setEndLabel(MINING + "(" + m.getLabel() + ")");
+			progThread.start();
+			
+			metThread.start();
+			
+			try {
+				metThread.join();
+				progThread.join();
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}				
+			
+			((ModelTrie) t).setup(m.getModel());
+			ta.setInfo(m.toString());
+			//ta.setName(ta.getName());
+			return true;
+		}
+		return false;
+	}
+
+	@Override
+	public void setupTries() {
+		
+		Map<MetricLabel, List<List<String>>> minerMap = getMetrics(MinerLabel.class.getSimpleName());
+		
+		int c = 1;
+		
+		for (FileInfo fi : files) {
+			
+			if (minerMap.keySet().isEmpty()) {
+				Trie t = new TrieImpl();					
+				ModelTrieAttributes trieAtt = new ModelTrieAttributes(t, fi.getName(), fi);
+				tries.add(t);
+				setTrieAttributes(t, trieAtt);
+			}
+			
+			for (MetricLabel l : minerMap.keySet()) {
+				
+				for (List<String> args : minerMap.get(l)) {
+					
+					Trie t = new ModelTrie();					
+					ModelTrieAttributes trieAtt = new ModelTrieAttributes(t, fi.getName(), fi);
+					trieAtt.cvType = cvType;
+					
+					String[] argsArray = new String[args.size()+1];
+					
+					argsArray[0] = trieAtt.file.getFile().getPath();
+					
+					for (int i=1; i<args.size()+1; i++) {
+						argsArray[i] = args.get(i-1);
+					}
+					
+					Metric m = l.delegate(argsArray);
+					
+					m.registerProgObs(progObs);
+					m.setTimeout(timeout);
+					if (m.getSigDigs() < 0) m.setSigDigits(sigDigs);
+					
+					trieAtt.setMiner(m, true);
+					System.out.println("SET MINER TO: " + trieAtt.getMiner().getLabel());
+					//trieAtt.setName(trieAtt.getName());
+					tries.add(t);
+					setTrieAttributes(t, trieAtt);
+					
+					crossValidation(t, c++, files.size());
+				}
+			}
+		}
+		removeMetrics(MinerLabel.class.getSimpleName());
+	}
+	
+	@Override
+	protected String getLastMetric() {
+		return EvaluationMetricLabel.class.getSimpleName();
+	}
+	
+	public void setCrossValidation(CrossValidationType cv, int k) {
+		
+		cv.setK(k);
+		cv.setInSample(false);
+		cv.setOutSample(true);
+		cvType = cv;
+	}
+	
+	public void setCrossValidation(CrossValidationType cv, int k, boolean inSample, boolean outSample) {
+		
+		cv.setK(k);
+		cv.setInSample(inSample);
+		cv.setOutSample(outSample);
+		cvType = cv;
+	}
+
+	@Override
+	protected boolean needToBuildTries() {
+		
+		for (MetricLabel m : getMetrics(EvaluationMetricLabel.class.getSimpleName()).keySet()) {
+			if ( !m.equals(EvaluationMetricLabel.ModelSize) && !m.equals(EvaluationMetricLabel.MiningTime_ms) ) {
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	protected <T extends Collection<? extends List<? extends Object>>> void crossValidation(Trie t, int current, int total) {
 		
 		ModelTrieAttributes<T> ta =  (ModelTrieAttributes<T>) getTrieAttributes(t);
 		RunMiner m = (RunMiner) ta.getMiner();
@@ -207,18 +327,22 @@ public class ModelTrieMediator extends AbstractTrieMediator {
 					
 					RunMiner cvMiner = (RunMiner) m.getLabel().delegate(args);
 					
-					cvProgThread.setEndLabel(CVMINING);
+					//cvProgThread.setEndLabel(MINING);
 					
 					cvMiner.setLog((XLog) training.getLoadedFile());
-					trainingTA.setMiner(cvMiner);
-					trainingTA.setName(trainingTA.getName() + "-" + trainingTA.getInfo());
+					trainingTA.setMiner(cvMiner, true);
+					validationTA.setMiner(cvMiner, false);
+					trainingTA.setName(trainingTA.getName()); //+ "-" + trainingTA.getInfo());
 					setTrieAttributes(trainingTrie,trainingTA);
-					
-					MetricThread metThread = new MetricThread(cvMiner, trainingTrie);
-					
+
 					cvMiner.registerProgObs(progObs);
 					cvMiner.setTimeout(timeout);
 					cvMiner.setSigDigits(sigDigs);
+					
+					/*
+					MetricThread metThread = new MetricThread(cvMiner, trainingTrie);
+					
+
 					
 					long startMining = System.nanoTime();
 					metThread.start();
@@ -231,9 +355,13 @@ public class ModelTrieMediator extends AbstractTrieMediator {
 					
 					((ModelTrie) trainingTrie).setup(cvMiner.getModel());
 					((ModelTrie) validationTrie).setup(cvMiner.getModel());
+					*/
 					validationTA.setInfo(cvMiner.toString());
+					//updateAllMetrics();
 					//validationTA.setName(validationTA.getName());
+					setTrieAttributes(validationTrie,validationTA);
 				}
+				
 				
 				if (cvType.equals(CrossValidationType.KFoldNoTwin) || cvType.equals(CrossValidationType.KFoldShuffleNoTwin)) {
 					if (verbose) System.out.println("Looking for twins...");
@@ -267,9 +395,19 @@ public class ModelTrieMediator extends AbstractTrieMediator {
 					if (verbose) System.out.println("Removed " + twins.size() + " of " + (twins.size()+validation.getLoadedFile().size()) + " traces from validation set which also appear in training set");
 				}
 				
-				setTrieAttributes(validationTrie,validationTA);
-				trieIterator.add(validationTrie);
-				tries.add(validationTrie);
+				if (cvType.getOutSample()) {
+					setTrieAttributes(validationTrie,validationTA);
+					//trieIterator.add(validationTrie);
+					tries.add(validationTrie);
+				}
+				
+				if (cvType.getInSample()) {
+					setTrieAttributes(trainingTrie,trainingTA);
+					//trieIterator.add(trainingTrie);
+					tries.add(trainingTrie);
+				}
+				
+				/*
 				try {
 					List<String> revPath = pathAsRevList(validation.getFile());
 					filePathTrie.insert(revPath, false);
@@ -280,7 +418,7 @@ public class ModelTrieMediator extends AbstractTrieMediator {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				
+				*/
 				/*
 				try {
 					addFile(validationPath);
@@ -303,104 +441,9 @@ public class ModelTrieMediator extends AbstractTrieMediator {
 			//if (!containsMetric(EvaluationMetricLabel.Fitness)) {
 			//	addMetric(EvaluationMetricLabel.Fitness, new String[0]);
 			//}
-			updateAllMetrics();
-			return false;
-			
-		} else {
-			
-			if (m != null) {
-				
-				ProgObsThread progThread = new ProgObsThread(progObs, m, showProgress);
-				
-				MetricThread metThread = new MetricThread(m, t);
-				
-				progThread.setCurrent(current);
-				progThread.setTotal(tries.size());
-				progThread.setPreLabel(preLabel);
-				progThread.start();
-				
-				metThread.start();
-				
-				try {
-					metThread.join();
-					progThread.join();
-				} catch (InterruptedException e) {
-					e.printStackTrace();
-				}				
-				
-				((ModelTrie) t).setup(m.getModel());
-				ta.setInfo(m.toString());
-				//ta.setName(ta.getName());
-			}
-			return true;
-		}
+			//updateAllMetrics();
+			//return false;
+			System.out.println("FINISHED SETTING UP CROSS-FOLD VALIDATION TRIES");
 	}
-
-	@Override
-	public void setupTries() {
-		
-		Map<MetricLabel, List<List<String>>> minerMap = getMetrics(MinerLabel.class.getSimpleName());
-		
-		for (FileInfo fi : files) {
-			
-			if (minerMap.keySet().isEmpty()) {
-				Trie t = new TrieImpl();					
-				ModelTrieAttributes trieAtt = new ModelTrieAttributes(t, fi.getName(), fi);
-				tries.add(t);
-				setTrieAttributes(t, trieAtt);
-			}
-			
-			for (MetricLabel l : minerMap.keySet()) {
-				
-				for (List<String> args : minerMap.get(l)) {
-					
-					Trie t = new ModelTrie();					
-					ModelTrieAttributes trieAtt = new ModelTrieAttributes(t, fi.getName(), fi);
-					trieAtt.cvType = cvType;
-					
-					String[] argsArray = new String[args.size()+1];
-					
-					argsArray[0] = trieAtt.file.getFile().getPath();
-					
-					for (int i=1; i<args.size()+1; i++) {
-						argsArray[i] = args.get(i-1);
-					}
-					
-					Metric m = l.delegate(argsArray);
-					
-					m.registerProgObs(progObs);
-					m.setTimeout(timeout);
-					if (m.getSigDigs() < 0) m.setSigDigits(sigDigs);
-					
-					trieAtt.setMiner(m);
-					//trieAtt.setName(trieAtt.getName());
-					tries.add(t);
-					setTrieAttributes(t, trieAtt);
-				}
-			}
-		}
-		removeMetrics(MinerLabel.class.getSimpleName());
-	}
-	
-	@Override
-	protected String getLastMetric() {
-		return EvaluationMetricLabel.class.getSimpleName();
-	}
-	
-	public void setCrossValidation(CrossValidationType cv, int k) {
-		cv.setK(k);
-		cvType = cv;
-	}
-
-	@Override
-	protected boolean needToBuildTries() {
-		
-		for (MetricLabel m : getMetrics(EvaluationMetricLabel.class.getSimpleName()).keySet()) {
-			if ( !m.equals(EvaluationMetricLabel.ModelSize) && !m.equals(EvaluationMetricLabel.MiningTime_ms) ) {
-				return true;
-			}
-		}
-		
-		return false;
 	}
 }

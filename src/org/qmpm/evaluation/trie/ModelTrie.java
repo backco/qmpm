@@ -49,7 +49,6 @@ public class ModelTrie extends TrieImpl {
 	public Node createNode(ElementLabel parentEdgeLabel, Node parent) throws ProcessTransitionException {
 		
 		if (model == null) {
-			System.out.println("model==null"); 
 			throw new ProcessTransitionException("Empty model!");
 		}
 		

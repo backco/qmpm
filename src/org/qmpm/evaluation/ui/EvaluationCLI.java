@@ -51,29 +51,35 @@ public class EvaluationCLI implements CLI {
 		options.addOption( new LambdaOption("u", "unique", false, "ratio of unique traces to total traces (0.0 - 1.0)", () -> Framework.addMetric(EvaluationMetricLabel.UniqueTraces)) );
 		options.addOption( new LambdaOption("S", "size", false, "size of log/collection", () -> Framework.addMetric(EvaluationMetricLabel.Size)) );
 		
-		final LambdaOption crossValOption = new LambdaOption("c", "cross-validation", true, "K-fold cross validation");
-		crossValOption.setArgs(1);
-		crossValOption.setArgName("FOLDS(K)");
+		final LambdaOption crossValOption = new LambdaOption("c", "cross-validation", true, "K-fold cross validation.\n'i': compute metric on training data\n'o': compute metric on validation data\n'b':compute on both training and validation data");
+		crossValOption.setArgs(2);
+		crossValOption.setArgName("FOLDS(K), IN/OUT-SAMPLE");
 		crossValOption.setOperation( () -> ModelFramework.setCrossValidation(CrossValidationType.KFold, crossValOption));
 		options.addOption(crossValOption);
 
-		final LambdaOption crossValNoTwinOption = new LambdaOption("C", "cross-validation-no-twin", true, "K-fold cross validation with traces seen in training set removed from validation set. Avoids testing on training data.");
-		crossValNoTwinOption.setArgs(1);
-		crossValNoTwinOption.setArgName("FOLDS(K)");
+		final LambdaOption crossValNoTwinOption = new LambdaOption("C", "cross-validation-no-twin", true, "K-fold cross validation with traces seen in training set removed from validation set. Avoids testing on training data.\n'i': compute metric on training data\n'o': compute metric on validation data\n'b':compute on both training and validation data");
+		crossValNoTwinOption.setArgs(2);
+		crossValNoTwinOption.setArgName("FOLDS(K), IN/OUT-SAMPLE");
 		crossValNoTwinOption.setOperation( () -> ModelFramework.setCrossValidation(CrossValidationType.KFoldNoTwin, crossValNoTwinOption));
 		options.addOption(crossValNoTwinOption);
 		
-		final LambdaOption crossValShuffleOption = new LambdaOption("r", "cross-validation-shuffle", true, "K-fold cross validation - shuffle data before parition");
-		crossValShuffleOption.setArgs(1);
-		crossValShuffleOption.setArgName("FOLDS(K)");
+		final LambdaOption crossValShuffleOption = new LambdaOption("r", "cross-validation-shuffle", true, "K-fold cross validation - shuffle data before partition. \n'i': compute metric on training data\n'o': compute metric on validation data\n'b':compute on both training and validation data");
+		crossValShuffleOption.setArgs(2);
+		crossValShuffleOption.setArgName("FOLDS(K), IN/OUT-SAMPLE");
 		crossValShuffleOption.setOperation( () -> ModelFramework.setCrossValidation(CrossValidationType.KFoldShuffle, crossValShuffleOption));
 		options.addOption(crossValShuffleOption);
 
-		final LambdaOption crossValShuffleNoTwinOption = new LambdaOption("R", "cross-validation-shuffle-no-twin", true, "K-fold cross validation - shuffle data before partition - traces seen in training set removed from validation set. Avoids testing on training data.");
-		crossValShuffleNoTwinOption.setArgs(1);
-		crossValShuffleNoTwinOption.setArgName("FOLDS(K)");
+		final LambdaOption crossValShuffleNoTwinOption = new LambdaOption("R", "cross-validation-shuffle-no-twin", true, "K-fold cross validation - shuffle data before partition - traces seen in training set removed from validation set. Avoids testing on training data.\n'i': compute metric on training data\n'o': compute metric on validation data\n'b':compute on both training and validation data");
+		crossValShuffleNoTwinOption.setArgs(2);
+		crossValShuffleNoTwinOption.setArgName("FOLDS(K), IN/OUT-SAMPLE");
 		crossValShuffleNoTwinOption.setOperation( () -> ModelFramework.setCrossValidation(CrossValidationType.KFoldShuffleNoTwin, crossValShuffleNoTwinOption));
 		options.addOption(crossValShuffleNoTwinOption);
+		
+		final LambdaOption declareMinerOption = new LambdaOption("d", "declare-miner", false, "run Declare Miner (control-flow perspective)");
+		declareMinerOption.setArgs(2);
+		declareMinerOption.setArgName("ALPHA, SUPPORT");
+		declareMinerOption.setOperation( () -> ModelFramework.addMiner(MinerLabel.DeclareMiner, declareMinerOption) );
+		options.addOption(declareMinerOption);
 		
 		options.addOption( new LambdaOption("L", "flower-miner", false, "run Flower Miner", () -> ModelFramework.addMiner(MinerLabel.FlowerMiner) ));
 		options.addOption( new LambdaOption("I", "inductive-miner", false, "run Inductive Miner", () -> ModelFramework.addMiner(MinerLabel.InductiveMiner) ));

@@ -13,7 +13,7 @@ public class ModelFramework extends Framework {
 	//protected static ModelTrieMediator trieMediator = new ModelTrieMediator();
 	
 	public static void addMiner(MinerLabel m, Option o) {
-
+		
 		String[] args = cmd.getOptionValues(o.getLongOpt());
 		
 		for (int i=0; i<args.length; i += o.getArgs()) {
@@ -24,7 +24,6 @@ public class ModelFramework extends Framework {
 	}
 	
 	public static void addMiner(MinerLabel m) {
-		//System.out.println("Adding metric " + m.toString() + " with no args");
 		((ModelTrieMediator) trieMediator).addMiner(m, new String[0]);
 	}
 	
@@ -41,7 +40,20 @@ public class ModelFramework extends Framework {
 			System.out.println("Using default value: " + k);
 			ModelFramework.resetQuiet();
 		}
+
+		boolean inSample = false;
+		boolean outSample = true;
+		if (String.valueOf(args[1]).toLowerCase().equals("i")) {
+			inSample = true;
+			outSample = false;
+		} else if (String.valueOf(args[1]).toLowerCase().equals("o")) {
+			inSample = false;
+			outSample = true;
+		} else if (String.valueOf(args[1]).toLowerCase().equals("b")) {
+			inSample = true;
+			outSample = true;
+		}
 		
-		((ModelTrieMediator) trieMediator).setCrossValidation(cvType, k);
+		((ModelTrieMediator) trieMediator).setCrossValidation(cvType, k, inSample, outSample);
 	}
 }

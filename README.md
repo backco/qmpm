@@ -45,6 +45,7 @@ The following miners are built in to qmpm:
 - Inductive Miner (IM)
 - MINERful
 - MINERful w/ automatic parameter tuning
+- ParNek Miner
 #### Upcoming
 - Declare Maps Miner
 - Others

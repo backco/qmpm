@@ -17,8 +17,6 @@ import org.processmining.plugins.declareminer.visualizing.ConstraintDefinition;
 public class Declare2DCR {
 	
 	public static Automata convert(DeclareMinerOutput dmo) {
-
-		// TODO: NOT TESTED!!!
 		
 		Vector<ConstraintDefinition> constraintDefs = dmo.getAllDiscoveredConstraints();
 		HashSet<List<String>> constraints = new HashSet<>();
@@ -30,15 +28,17 @@ public class Declare2DCR {
 		
 		for (ConstraintDefinition cd : constraintDefs) {
 			
+			
+			
 			List<String> cl = new ArrayList<>();
-			String regex = "^(.*?)\\(";
+			String regex = "^(.*?): \\[";
 			
 			for (int i=cd.parameterCount(); i>0; i--) {
-				regex += (i==1 ? "(.*?)\\)$" : "(.*?),");
+				regex += (i==1 ? "(.*?)\\]$" : "(.*?)\\], \\[");
 			}
 			
 			Pattern pat = Pattern.compile(regex);
-			Matcher mat = pat.matcher(cd.toString());
+			Matcher mat = pat.matcher(cd.getCaption());
 			
 			while (mat.find()) {
 				for (int i=0; i<=cd.parameterCount(); i++) {

@@ -54,7 +54,7 @@ public class RunMINERful extends RunMiner {
 		
 		String baseName = FilenameUtils.getBaseName(path);
 		
-		long startMining = System.nanoTime();
+		//long startMining = System.nanoTime();
 		
 		InputCmdParameters inputParams = new InputCmdParameters();
 		MinerFulCmdParameters minerFulParams = new MinerFulCmdParameters();
@@ -100,7 +100,8 @@ public class RunMINERful extends RunMiner {
         debugProperties.setProperty("log4j.appender.A1.layout.ConversionPattern", "%p [%t] %c{2} (%M:%L) - %m%n");
         PropertyConfigurator.configure(debugProperties);
         
-		
+        long startMining = System.nanoTime();
+        
 		ProcessModel processModel = miFuMiLa.mine(log);
 		MinerFulSimplificationLauncher miFuSiLa = new MinerFulSimplificationLauncher(processModel, postParams);
 		ProcessModel simplifiedProcessModel = miFuSiLa.simplify();
@@ -114,9 +115,9 @@ public class RunMINERful extends RunMiner {
 		}
 		*/
 		if (simplifiedProcessModel.howManyConstraints() == 0) {
-			System.out.println("");
-			System.out.println("NOTE: The model for " + baseName + " is empty! Check if parameters are too strict");
-			System.out.println("");
+			//System.out.println("");
+			//System.out.println("NOTE: The model for " + baseName + " is empty! Check if parameters are too strict");
+			//System.out.println("");
 			// return null;
 			model = new DeclarativeModel(simplifiedProcessModel);
 		} else {

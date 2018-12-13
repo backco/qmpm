@@ -1,14 +1,17 @@
 package org.qmpm.evaluation.enums;
 
+import org.qmpm.evaluation.processmining.RunDeclareMiner;
 import org.qmpm.evaluation.processmining.RunFlowerMiner;
 import org.qmpm.evaluation.processmining.RunInductiveMiner;
 import org.qmpm.evaluation.processmining.RunMINERful;
 import org.qmpm.evaluation.processmining.RunMINERfulAuto;
 import org.qmpm.evaluation.processmining.RunPetrinetTest;
+import org.qmpm.logtrie.core.Framework;
 import org.qmpm.logtrie.enums.MetricLabel;
 import org.qmpm.logtrie.metrics.Metric;
 
 public enum MinerLabel implements MetricLabel {
+	DeclareMiner("Declare Miner"),
 	InductiveMiner("Inductive Miner"),
 	FlowerMiner("Flower Miner"),
 	MINERful("MINERful"),
@@ -24,6 +27,11 @@ public enum MinerLabel implements MetricLabel {
 	public Metric delegate(String args[]) {
 		
 		switch(this) {
+		case DeclareMiner:
+			RunDeclareMiner dm = new RunDeclareMiner();
+			dm.setArgs(args);
+			dm.processArgs(args);
+			return dm;
 		case InductiveMiner: 		
 			RunInductiveMiner im = new RunInductiveMiner();
 			im.setArgs(args);

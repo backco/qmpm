@@ -126,6 +126,7 @@ public class DeclarativeModel extends GenericProcessModel {
 		
 		numOfActivities = minerfulModel.getProcessAlphabet().size();
 	}
+
 	
 	public ModelState getInitialState() {
 		return initialState;

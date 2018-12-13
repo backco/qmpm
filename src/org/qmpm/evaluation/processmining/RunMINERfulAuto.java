@@ -65,8 +65,6 @@ public class RunMINERfulAuto extends RunMiner {
 				threshold -= resolution;
 			}
 			
-			System.out.println("interestFactorArray: " + interestFactorArray);
-			
 			int lowerBound = 0;
 
 			int upperBound = interestFactorArray.size()-1;
@@ -95,7 +93,6 @@ public class RunMINERfulAuto extends RunMiner {
 				
 				double currentInterestFactor = interestFactorArray.get(half);
 				
-				System.out.println("*** Running miner: " + currentConfidence + ", " + currentInterestFactor);
 									
 				RunMINERful rm = new RunMINERful();
 				rm.setLog(log);
@@ -114,8 +111,6 @@ public class RunMINERfulAuto extends RunMiner {
 					result = currentModel;
 				} 			
 				
-				System.out.println(modelSize + " < " + maxModelSize + ": " + (modelSize < maxModelSize));
-				
 				if (modelSize == maxModelSize) {
 
 					model = result;
@@ -127,8 +122,6 @@ public class RunMINERfulAuto extends RunMiner {
 					if ( modelSize > result.getModelSize() ) {
 						confidence = currentConfidence;
 						interestFactor = currentInterestFactor;
-						System.out.println("1 - OLD MODEL: " + result.getName());
-						System.out.println("1 - NEW MODEL: " + currentModel.getName());
 						result = currentModel;
 					}
 					
@@ -139,8 +132,6 @@ public class RunMINERfulAuto extends RunMiner {
 					if (modelSize < result.getModelSize()) {
 						confidence = currentConfidence;
 						interestFactor = currentInterestFactor;
-						System.out.println("2 - OLD MODEL: " + result.getName());
-						System.out.println("2 - NEW MODEL: " + currentModel.getName());
 						result = currentModel;
 					}
 					
@@ -154,9 +145,7 @@ public class RunMINERfulAuto extends RunMiner {
 				
 				if (half == 0 || half == interestFactorArray.size() - 1)	closeAsPossible = true;
 			
-				System.out.println("result: " + result.getName());
 			}
-			System.out.println("*** NEXT ITERATION ***");
 			/*
 			updateProgress((double) ++progress / total);
 			if (getOutcome() != Outcome.CONTINUE) {

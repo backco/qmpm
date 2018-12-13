@@ -111,6 +111,7 @@ public abstract class GenericProcessModel {
 	}
 	
 	public int getModelSize() {
-		return (isEmpty() ? -1 : getNumOfNodes() + getNumOfEdges());
+		return (isEmpty() ? -1 : getNumOfEdges());
+		//return (isEmpty() ? -1 : getNumOfNodes() + getNumOfEdges());
 	}
 }

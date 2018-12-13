@@ -12,6 +12,8 @@ public enum CrossValidationType {
 	private String desc;
 	private int k = 1;
 	String timeStamp = "";
+	private boolean inSample = false;
+	private boolean outSample = true;
 	
 	CrossValidationType(String shortDesc) {
 		desc = shortDesc;
@@ -37,5 +39,21 @@ public enum CrossValidationType {
 		
 		if (timeStamp.equals("")) timeStamp = Instant.now().toString().replaceAll(":", "-");
 		return timeStamp;
+	}
+	
+	public boolean getInSample() {
+		return inSample;
+	}
+	
+	public boolean getOutSample() {
+		return outSample;
+	}
+	
+	public void setInSample(boolean b) {
+		inSample = b;
+	}
+	
+	public void setOutSample(boolean b) {
+		outSample = b;
 	}
 }
