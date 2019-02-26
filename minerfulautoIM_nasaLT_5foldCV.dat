@@ -1,0 +1,6 @@
+         | FILENAME                                                       | Fitness | PrecisionNormalized | ModelSize | MiningTime_ms |
+SORTED   | ~\1-validation-nasa-cev-complete-splitted_LT.xes               |   0.998 |               0.274 |       392 |      6443.422 | MINERful Auto-Config (0.5,0.3)
+SORTED   | ~\2-validation-nasa-cev-complete-splitted_LT.xes               |   1.000 |               0.259 |       408 |      6724.794 | MINERful Auto-Config (0.4,0.4)
+SORTED   | ~\3-validation-nasa-cev-complete-splitted_LT.xes               |   1.000 |               0.258 |       408 |      7253.106 | MINERful Auto-Config (0.4,0.4)
+SORTED   | ~\4-validation-nasa-cev-complete-splitted_LT.xes               |   1.000 |               0.233 |       393 |      6656.357 | MINERful Auto-Config (1.0,0.2)
+SORTED   | ~\5-validation-nasa-cev-complete-splitted_LT.xes               |   1.000 |               0.271 |       408 |      6950.167 | MINERful Auto-Config (0.4,0.4)

@@ -7,14 +7,14 @@ public class DCRMarking {
 	public HashSet<String> included = new HashSet<String>();
 	public HashSet<String> pending = new HashSet<String>();
 
-	public boolean IsAccepting()
-	{
-		for (String e: included)
-			if (pending.contains(e)) return false;
-		
+	public boolean IsAccepting() {
+		for (String e : included)
+			if (pending.contains(e))
+				return false;
+
 		return true;
 	}
-	
+
 	@Override
 	public String toString() {
 		final StringBuilder result = new StringBuilder();
@@ -41,25 +41,25 @@ public class DCRMarking {
 
 		return result.toString();
 	}
-	
+
 	@Override
-    public int hashCode() {        
-        return this.toString().hashCode();
-    }
-	
+	public int hashCode() {
+		return this.toString().hashCode();
+	}
+
 	@Override
-	public DCRMarking clone()
-	{
+	public DCRMarking clone() {
 		DCRMarking newMarking = new DCRMarking();
-		
+
 		newMarking.executed = new HashSet<String>(this.executed);
 		newMarking.included = new HashSet<String>(this.included);
 		newMarking.pending = new HashSet<String>(this.pending);
 		/*
-		newMarking.executed = (HashSet<String>) this.executed.clone();
-		newMarking.included = (HashSet<String>) this.included.clone();
-		newMarking.pending = (HashSet<String>) this.pending.clone();*/
+		 * newMarking.executed = (HashSet<String>) this.executed.clone();
+		 * newMarking.included = (HashSet<String>) this.included.clone();
+		 * newMarking.pending = (HashSet<String>) this.pending.clone();
+		 */
 		return newMarking;
-	}		
-	
+	}
+
 }

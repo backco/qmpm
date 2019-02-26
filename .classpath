@@ -35,9 +35,9 @@
 	<classpathentry kind="lib" path="lib/Properties.jar"/>
 	<classpathentry kind="lib" path="lib/ProM-Models.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/MINERful"/>
-	<classpathentry combineaccessrules="false" kind="src" path="/logtrie"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/parnek"/>
 	<classpathentry kind="lib" path="lib/ProM-Contexts.jar"/>
 	<classpathentry combineaccessrules="false" kind="src" path="/DeclareMinerWithThreads"/>
+	<classpathentry kind="lib" path="lib/logtrie_20190219.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
