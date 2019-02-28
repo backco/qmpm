@@ -1,6 +1,0 @@
-         | FILENAME                                                                                                     | Fitness | PrecisionNormalized | ModelSize | MiningTime_ms |
-SORTED   | ~\1-validation-CoSeLog WABO - Receipt phase of an environmental permit application process.xes               |   0.990 |               0.355 |        93 |       480.078 | MINERful Auto-Config (0.8,0.0)
-SORTED   | ~\2-validation-CoSeLog WABO - Receipt phase of an environmental permit application process.xes               |   0.997 |               0.325 |        91 |       542.623 | MINERful Auto-Config (0.8,0.0)
-SORTED   | ~\3-validation-CoSeLog WABO - Receipt phase of an environmental permit application process.xes               |   0.990 |               0.351 |        87 |       515.332 | MINERful Auto-Config (0.8,0.0)
-SORTED   | ~\4-validation-CoSeLog WABO - Receipt phase of an environmental permit application process.xes               |   0.997 |               0.345 |        90 |       559.078 | MINERful Auto-Config (0.8,0.0)
-SORTED   | ~\5-validation-CoSeLog WABO - Receipt phase of an environmental permit application process.xes               |   1.000 |               0.364 |        94 |       488.016 | MINERful Auto-Config (0.9,0.0)

@@ -1,10 +1,10 @@
 /*
  * 	Eventropy - entropy estimation for XES event logs and other sequential data
- * 
+ *
  * 	Author: Christoffer Olling Back	<www.christofferback.com>
- * 
- * 	Copyright (C) 2018 University of Copenhagen 
- * 
+ *
+ * 	Copyright (C) 2018 University of Copenhagen
+ *
  *	This file is part of Eventropy.
  *
  *	Eventropy is free software: you can redistribute it and/or modify
@@ -25,21 +25,21 @@ package org.qmpm.evaluation.metrics;
 
 import org.qmpm.evaluation.enums.EvaluationMetricLabel;
 import org.qmpm.logtrie.enums.Outcome;
-import org.qmpm.logtrie.trie.Trie;
 import org.qmpm.logtrie.metrics.Metric;
+import org.qmpm.logtrie.trie.Trie;
 
 public class UniqueTraces extends Metric {
 
 	@Override
 	public Outcome doComputation(Trie t) {
-		
-		int totalTraces = t.getTotalEndVisits(false);
+
+		int totalTraces = t.getAttemptedInsertions();
 		int uniqueTraces = t.getEndNodeSet().size();
-		
-		finished();
-		
+
+		this.finished();
+
 		this.value = (double) uniqueTraces / totalTraces;
-		
+
 		return Outcome.SUCCESS;
 	}
 
@@ -56,5 +56,5 @@ public class UniqueTraces extends Metric {
 	public String parametersAsString() {
 		return "";
 	}
-	
+
 }

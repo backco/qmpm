@@ -1,7 +1,6 @@
 package org.qmpm.evaluation.trie;
 
 import java.io.File;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
@@ -17,6 +16,7 @@ import org.qmpm.evaluation.enums.MinerLabel;
 import org.qmpm.evaluation.processmining.GenericProcessModel;
 import org.qmpm.evaluation.processmining.RunMiner;
 import org.qmpm.logtrie.core.Framework;
+import org.qmpm.logtrie.elementlabel.ElementLabel;
 import org.qmpm.logtrie.enums.MetricLabel;
 import org.qmpm.logtrie.exceptions.LabelTypeException;
 import org.qmpm.logtrie.exceptions.NodeNotFoundException;
@@ -26,7 +26,9 @@ import org.qmpm.logtrie.metrics.Metric;
 import org.qmpm.logtrie.metrics.MetricThread;
 import org.qmpm.logtrie.tools.FileInfo;
 import org.qmpm.logtrie.tools.FileInfoFactory;
+import org.qmpm.logtrie.tools.MathTools;
 import org.qmpm.logtrie.tools.XESTools;
+import org.qmpm.logtrie.tools.XLogFile;
 import org.qmpm.logtrie.trie.AbstractTrieMediator;
 import org.qmpm.logtrie.trie.Trie;
 import org.qmpm.logtrie.trie.Trie.Node;
@@ -148,7 +150,12 @@ public class ModelTrieMediator extends AbstractTrieMediator {
 					this.tries.add(t);
 					this.setTrieAttributes(t, trieAtt);
 
-					this.crossValidation(t, c++, this.files.size());
+					try {
+						this.crossValidation(t, c++, this.files.size());
+					} catch (Exception e) {
+						System.out.println("PROBLEM RUNNING CROSS VALIDATION!!!");
+						e.printStackTrace();
+					}
 				}
 			}
 		}
@@ -189,7 +196,7 @@ public class ModelTrieMediator extends AbstractTrieMediator {
 	}
 
 	protected <T extends Collection<? extends List<? extends Object>>> void crossValidation(Trie t, int current,
-			int total) {
+			int total) throws Exception {
 
 		ModelTrieAttributes<T> ta = (ModelTrieAttributes<T>) this.getTrieAttributes(t);
 		RunMiner m = (RunMiner) ta.getMiner();
@@ -227,54 +234,155 @@ public class ModelTrieMediator extends AbstractTrieMediator {
 					|| this.cvType.equals(CrossValidationType.KFoldShuffleNoTwin)) {
 				mainFile.shuffle();
 			}
+
 			String mainFileDir = mainFile.getFile().getParent();
 			String mainFileName = mainFile.getFile().getName();
-			String timeStamp = Instant.now().toString().replaceAll(":", "-");
 			String cvDir = "cross-validation-" + ta.getCVType().toString() + "-" + ta.getCVType().getTimeStamp();
 
 			List<FileInfo<T>> partitionedLog = FileInfoFactory.partition(mainFile, ta.getCVType().getK());
 
-			int k = 1;
-
 			for (int j = 0; j < ta.getCVType().getK(); j++) {
-
-				List<FileInfo<T>> trainingParted = new ArrayList<>();
-				trainingParted.addAll(partitionedLog);
-
-				String validationPath = "";
-				if (mainFileName.toLowerCase().endsWith(".xes")) {
-					validationPath = mainFileDir + File.separator + cvDir + File.separator + (j + 1) + "-validation-"
-							+ mainFileName.substring(0, mainFileName.length() - 4) + ".xes";
-				}
-
-				FileInfo<T> validation = FileInfoFactory.build(validationPath, false);
-				validation.append(trainingParted.remove(j));
-
-				String trainingPath = "";
-				if (mainFileName.toLowerCase().endsWith(".xes")) {
-					trainingPath = mainFileDir + File.separator + cvDir + File.separator + (j + 1) + "-training-"
-							+ mainFileName.substring(0, mainFileName.length() - 4) + ".xes";
-				}
-
-				FileInfo<T> training = FileInfoFactory.build(trainingPath, false);
-				for (FileInfo<T> part : trainingParted) {
-					training.append(part);
-				}
 
 				Trie trainingTrie = new ModelTrie();
 				Trie validationTrie = new ModelTrie();
+				ModelTrieAttributes<T> trainingTA;
+				ModelTrieAttributes<T> validationTA;
+				String trainingPath = "";
+				String validationPath = "";
+				String partitionPath = "";
 
-				try {
-					t.addElementLabels(XESTools.getAllActivities((XLog) ta.getFile().getLoadedFile()));
-				} catch (LabelTypeException e2) {
-					System.out.println(e2.getMessage());
-					e2.printStackTrace();
+				if (mainFileName.toLowerCase().endsWith(".xes")) {
+					validationPath = mainFileDir + File.separator + cvDir + File.separator + (j + 1) + "-validation-"
+							+ mainFileName.substring(0, mainFileName.length() - 4) + ".xes";
+					trainingPath = mainFileDir + File.separator + cvDir + File.separator + (j + 1) + "-training-"
+							+ mainFileName.substring(0, mainFileName.length() - 4) + ".xes";
+					partitionPath = mainFileDir + File.separator + cvDir + File.separator + (j + 1) + "-partition-"
+							+ mainFileName.substring(0, mainFileName.length() - 4) + ".xes";
 				}
-				validationTrie.setAssociatedTrie(t);
 
-				ModelTrieAttributes<T> trainingTA = new ModelTrieAttributes(trainingTrie, training.getName(), training);
-				ModelTrieAttributes<T> validationTA = new ModelTrieAttributes(validationTrie, validation.getName(),
-						validation);
+				List<FileInfo<T>> trainingParted = new ArrayList<>();
+				FileInfo<T> training = FileInfoFactory.build(trainingPath, false);
+				FileInfo<T> validation = FileInfoFactory.build(validationPath, false);
+
+				if (this.cvType.equals(CrossValidationType.KFoldFlattenExpand)) {
+
+					XLogFile validationFI = new XLogFile(mainFile.getName(), false);
+					XLogFile trainingFI = new XLogFile(mainFile.getName(), false);
+					FileInfo<T> partition = FileInfoFactory.build(partitionPath, false);
+					partition.append(mainFile);
+					Trie partitionTrie = new TrieImpl();
+					TrieAttributes<?> partitionTA = new TrieAttributes<>(partitionTrie, mainFile.getName(), partition);
+
+					this.setTrieAttributes(partitionTrie, ta);
+					this.buildTrie(partitionTrie, false);
+
+					// Partition
+
+					List<List<Node>> partedNodes = MathTools.partition(partitionTrie.getEndNodeSet(),
+							ta.getCVType().getK());
+					/*
+					 * int k = ta.getCVType().getK(); int s = partitionTrie.getEndNodeSet().size();
+					 * int q = s / k; int r = s % k;
+					 *
+					 * int step = r > 0 ? q + 1 : q; for (int i = 0, c = 1; i + step - 1 <= s; i +=
+					 * step, c++) { step = c <= r ? q + 1 : q;
+					 * partedNodes.add(partitionTrie.getEndNodeSet().subList(i, i + step)); }
+					 */
+					// TODO: Consolidate
+					for (int i = 0; i < partedNodes.size(); i++) {
+						if (i == j) {
+							XLog log = validationFI.getXFactory().createLog();
+							for (Node n : partedNodes.get(i)) {
+								List<ElementLabel> trace = partitionTrie.getVisitingPrefix(n);
+								for (int h = 0; h < n.getEndVisits(); h++) {
+									XTrace xTrace = XESTools.toXtrace(partitionTrie.getVisitingPrefix(n),
+											validationFI.getXFactory());
+									log.add(xTrace);
+								}
+							}
+
+							validationFI.setXLog(log);
+							validation.append((FileInfo<T>) validationFI);
+
+						} else {
+							XLog log = trainingFI.getXFactory().createLog();
+							for (Node n : partedNodes.get(i)) {
+								List<ElementLabel> trace = partitionTrie.getVisitingPrefix(n);
+								for (int h = 0; h < n.getEndVisits(); h++) {
+									XTrace xTrace = XESTools.toXtrace(partitionTrie.getVisitingPrefix(n),
+											trainingFI.getXFactory());
+									log.add(xTrace);
+								}
+							}
+							trainingFI.setXLog(log);
+							training.append((FileInfo<T>) trainingFI);
+						}
+					}
+
+					try {
+						t.addElementLabels(XESTools.getAllActivities((XLog) ta.getFile().getLoadedFile()));
+					} catch (LabelTypeException e2) {
+						System.out.println(e2.getMessage());
+						e2.printStackTrace();
+					}
+
+					validationTrie.setAssociatedTrie(t);
+
+					trainingTA = new ModelTrieAttributes<>(trainingTrie, training.getName(), training);
+					validationTA = new ModelTrieAttributes<>(validationTrie, validation.getName(), validation);
+
+					// TEST
+					System.out.println("");
+					System.out.println("=============================");
+					System.out.println(" FOLD: " + j);
+					System.out.println("");
+					System.out.println("=============================");
+					System.out.println("=       TRAINING DATA       =");
+					System.out.println("=============================");
+					System.out.println("");
+					for (Object o : training.getLoadedFile()) {
+						try {
+							System.out.println(XESTools.xTraceToString((XTrace) o));
+						} catch (LabelTypeException e) {
+							System.out.println("SOME THING WENT WRONG");
+							e.printStackTrace();
+						}
+					}
+					System.out.println("");
+					System.out.println("=============================");
+					System.out.println("=      VALIDATION DATA      =");
+					System.out.println("=============================");
+					System.out.println("");
+					for (Object o : validation.getLoadedFile()) {
+						try {
+							System.out.println(XESTools.xTraceToString((XTrace) o));
+						} catch (LabelTypeException e) {
+							System.out.println("SOME THING WENT WRONG");
+							e.printStackTrace();
+						}
+					}
+					// System.exit(1);
+				} else {
+
+					trainingParted.addAll(partitionedLog);
+
+					validation.append(trainingParted.remove(j));
+
+					for (FileInfo<T> part : trainingParted) {
+						training.append(part);
+					}
+
+					try {
+						t.addElementLabels(XESTools.getAllActivities((XLog) ta.getFile().getLoadedFile()));
+					} catch (LabelTypeException e2) {
+						System.out.println(e2.getMessage());
+						e2.printStackTrace();
+					}
+					validationTrie.setAssociatedTrie(t);
+
+					trainingTA = new ModelTrieAttributes<>(trainingTrie, training.getName(), training);
+					validationTA = new ModelTrieAttributes<>(validationTrie, validation.getName(), validation);
+				}
 
 				if (m != null) {
 
@@ -400,13 +508,13 @@ public class ModelTrieMediator extends AbstractTrieMediator {
 			// }
 			// updateAllMetrics();
 			// return false;
-			System.out.println("FINISHED SETTING UP CROSS-FOLD VALIDATION TRIES");
+			System.out.println("FINISHED SETTING UP CROSS-FOLD VALIDATION TRIES:");
 		}
 	}
 
 	@Override
-	protected <T extends Collection<? extends List<?>>> void setTrieAttributes(Trie t, TrieAttributes<T> ta) {
-		this.modTrieAttMap.put(t, (ModelTrieAttributes) ta);
+	protected <T extends Collection<? extends List<?>>> void setTrieAttributes(Trie t, TrieAttributes<?> ta) {
+		this.modTrieAttMap.put(t, (ModelTrieAttributes<?>) ta);
 	}
 
 	@Override

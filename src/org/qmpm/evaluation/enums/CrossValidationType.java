@@ -5,55 +5,58 @@ import java.time.Instant;
 public enum CrossValidationType {
 	None("None"),
 	KFold("k-Fold"),
-	KFoldShuffle("k-fold, shuffled"),
-	KFoldNoTwin("k-fold, no twinning"),
-	KFoldShuffleNoTwin("k-fold, shuffled, no twinning");
-	
+	KFoldShuffle("k-fold: shuffled"),
+	KFoldNoTwin("k-fold: twins removed from validation set"),
+	KFoldShuffleNoTwin("k-fold: shuffled, twins removed from validation set"),
+	KFoldFlattenExpand("k-fold, flatten-partition-expand (avoids twins without skrinking log)");
+
 	private String desc;
 	private int k = 1;
 	String timeStamp = "";
 	private boolean inSample = false;
 	private boolean outSample = true;
-	
+
 	CrossValidationType(String shortDesc) {
-		desc = shortDesc;
+		this.desc = shortDesc;
 	}
-	
+
 	public int getK() {
-		return k;
+		return this.k;
 	}
-	
+
 	public void setK(int k) {
 		this.k = k;
 	}
 
 	public String shortDescription() {
-		return desc;
+		return this.desc;
 	}
-	
+
 	public String labelType() {
 		return this.getClass().getSimpleName();
 	}
-	
+
 	public String getTimeStamp() {
-		
-		if (timeStamp.equals("")) timeStamp = Instant.now().toString().replaceAll(":", "-");
-		return timeStamp;
+
+		if (this.timeStamp.equals("")) {
+			this.timeStamp = Instant.now().toString().replaceAll(":", "-");
+		}
+		return this.timeStamp;
 	}
-	
+
 	public boolean getInSample() {
-		return inSample;
+		return this.inSample;
 	}
-	
+
 	public boolean getOutSample() {
-		return outSample;
+		return this.outSample;
 	}
-	
+
 	public void setInSample(boolean b) {
-		inSample = b;
+		this.inSample = b;
 	}
-	
+
 	public void setOutSample(boolean b) {
-		outSample = b;
+		this.outSample = b;
 	}
 }

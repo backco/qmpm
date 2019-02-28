@@ -1,6 +1,0 @@
-         | FILENAME                                            | Fitness | PrecisionNormalized | ModelSize | MiningTime_ms |
-SORTED   | ~\1-validation-Production_Data_LT.xes               |   0.733 |               0.005 |       124 |      3167.590 | MINERful Auto-Config (0.2,0.0)
-SORTED   | ~\2-validation-Production_Data_LT.xes               |   0.822 |               0.003 |       141 |      3284.637 | MINERful Auto-Config (0.2,0.0)
-SORTED   | ~\3-validation-Production_Data_LT.xes               |   0.689 |               0.005 |       176 |      3774.442 | MINERful Auto-Config (0.2,0.0)
-SORTED   | ~\4-validation-Production_Data_LT.xes               |   0.889 |               0.003 |       176 |      4559.259 | MINERful Auto-Config (0.2,0.0)
-SORTED   | ~\5-validation-Production_Data_LT.xes               |   0.867 |               0.005 |       196 |      3878.003 | MINERful Auto-Config (0.2,0.0)
