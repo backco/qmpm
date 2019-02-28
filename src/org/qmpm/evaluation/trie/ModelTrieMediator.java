@@ -145,7 +145,6 @@ public class ModelTrieMediator extends AbstractTrieMediator {
 					}
 
 					trieAtt.setMiner(m, true);
-					System.out.println("SET MINER TO: " + trieAtt.getMiner().getLabel());
 					// trieAtt.setName(trieAtt.getName());
 					this.tries.add(t);
 					this.setTrieAttributes(t, trieAtt);
@@ -280,23 +279,16 @@ public class ModelTrieMediator extends AbstractTrieMediator {
 
 					List<List<Node>> partedNodes = MathTools.partition(partitionTrie.getEndNodeSet(),
 							ta.getCVType().getK());
-					/*
-					 * int k = ta.getCVType().getK(); int s = partitionTrie.getEndNodeSet().size();
-					 * int q = s / k; int r = s % k;
-					 *
-					 * int step = r > 0 ? q + 1 : q; for (int i = 0, c = 1; i + step - 1 <= s; i +=
-					 * step, c++) { step = c <= r ? q + 1 : q;
-					 * partedNodes.add(partitionTrie.getEndNodeSet().subList(i, i + step)); }
-					 */
+
 					// TODO: Consolidate
+
 					for (int i = 0; i < partedNodes.size(); i++) {
 						if (i == j) {
 							XLog log = validationFI.getXFactory().createLog();
 							for (Node n : partedNodes.get(i)) {
 								List<ElementLabel> trace = partitionTrie.getVisitingPrefix(n);
+								XTrace xTrace = XESTools.toXtrace(trace, validationFI.getXFactory());
 								for (int h = 0; h < n.getEndVisits(); h++) {
-									XTrace xTrace = XESTools.toXtrace(partitionTrie.getVisitingPrefix(n),
-											validationFI.getXFactory());
 									log.add(xTrace);
 								}
 							}
@@ -308,9 +300,8 @@ public class ModelTrieMediator extends AbstractTrieMediator {
 							XLog log = trainingFI.getXFactory().createLog();
 							for (Node n : partedNodes.get(i)) {
 								List<ElementLabel> trace = partitionTrie.getVisitingPrefix(n);
+								XTrace xTrace = XESTools.toXtrace(trace, trainingFI.getXFactory());
 								for (int h = 0; h < n.getEndVisits(); h++) {
-									XTrace xTrace = XESTools.toXtrace(partitionTrie.getVisitingPrefix(n),
-											trainingFI.getXFactory());
 									log.add(xTrace);
 								}
 							}
@@ -331,37 +322,6 @@ public class ModelTrieMediator extends AbstractTrieMediator {
 					trainingTA = new ModelTrieAttributes<>(trainingTrie, training.getName(), training);
 					validationTA = new ModelTrieAttributes<>(validationTrie, validation.getName(), validation);
 
-					// TEST
-					System.out.println("");
-					System.out.println("=============================");
-					System.out.println(" FOLD: " + j);
-					System.out.println("");
-					System.out.println("=============================");
-					System.out.println("=       TRAINING DATA       =");
-					System.out.println("=============================");
-					System.out.println("");
-					for (Object o : training.getLoadedFile()) {
-						try {
-							System.out.println(XESTools.xTraceToString((XTrace) o));
-						} catch (LabelTypeException e) {
-							System.out.println("SOME THING WENT WRONG");
-							e.printStackTrace();
-						}
-					}
-					System.out.println("");
-					System.out.println("=============================");
-					System.out.println("=      VALIDATION DATA      =");
-					System.out.println("=============================");
-					System.out.println("");
-					for (Object o : validation.getLoadedFile()) {
-						try {
-							System.out.println(XESTools.xTraceToString((XTrace) o));
-						} catch (LabelTypeException e) {
-							System.out.println("SOME THING WENT WRONG");
-							e.printStackTrace();
-						}
-					}
-					// System.exit(1);
 				} else {
 
 					trainingParted.addAll(partitionedLog);
