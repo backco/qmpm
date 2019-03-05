@@ -49,3 +49,8 @@ Thumbs.db
 # Eclipse files #
 #################
 *.prefs
+
+# scripts #
+###########
+*.bat
+*.sh
