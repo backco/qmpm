@@ -7,34 +7,37 @@ import org.qmpm.logtrie.enums.MetricLabel;
 import org.qmpm.logtrie.enums.Outcome;
 import org.qmpm.logtrie.exceptions.LabelTypeException;
 import org.qmpm.logtrie.metrics.Metric;
-import org.qmpm.logtrie.tools.MathTools;
 import org.qmpm.logtrie.trie.Trie;
 
 public class MiningTime extends Metric {
-	
+
 	String modelName = "";
 
 	public MiningTime() {
 		super();
-		setSigDigits(3);
+		this.setSigDigits(3);
 	}
-	
+
 	@Override
 	public Outcome doComputation(Trie t) throws LabelTypeException {
-		
-		GenericProcessModel pm = ((ModelTrie) t).getModel();
-		modelName = ((ModelTrie) t).getModel().getName();
-		
-		updateProgress(1.0);
-		if (getOutcome() != Outcome.CONTINUE) {
-			return getOutcome();
+
+		if (!(t instanceof ModelTrie)) {
+			return Outcome.ERROR;
+		} else {
+			GenericProcessModel pm = ((ModelTrie) t).getModel();
+			this.modelName = ((ModelTrie) t).getModel().getName();
+
+			this.updateProgress(1.0);
+			if (this.getOutcome() != Outcome.CONTINUE) {
+				return this.getOutcome();
+			}
+
+			this.finished();
+
+			this.value = (double) pm.getBuildTime() / 1000000;
+
+			return Outcome.SUCCESS;
 		}
-		
-		finished();
-		
-		value = (double) pm.getBuildTime() / 1000000;
-		
- 		return Outcome.SUCCESS;
 	}
 
 	@Override

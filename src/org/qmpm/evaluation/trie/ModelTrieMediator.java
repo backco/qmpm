@@ -10,6 +10,8 @@ import java.util.Map;
 
 import org.deckfour.xes.model.XLog;
 import org.deckfour.xes.model.XTrace;
+import org.deckfour.xes.model.impl.XAttributeMapImpl;
+import org.deckfour.xes.model.impl.XLogImpl;
 import org.qmpm.evaluation.enums.CrossValidationType;
 import org.qmpm.evaluation.enums.EvaluationMetricLabel;
 import org.qmpm.evaluation.enums.MinerLabel;
@@ -238,8 +240,6 @@ public class ModelTrieMediator extends AbstractTrieMediator {
 			String mainFileName = mainFile.getFile().getName();
 			String cvDir = "cross-validation-" + ta.getCVType().toString() + "-" + ta.getCVType().getTimeStamp();
 
-			List<FileInfo<T>> partitionedLog = FileInfoFactory.partition(mainFile, ta.getCVType().getK());
-
 			for (int j = 0; j < ta.getCVType().getK(); j++) {
 
 				Trie trainingTrie = new ModelTrie();
@@ -284,7 +284,8 @@ public class ModelTrieMediator extends AbstractTrieMediator {
 
 					for (int i = 0; i < partedNodes.size(); i++) {
 						if (i == j) {
-							XLog log = validationFI.getXFactory().createLog();
+							System.out.println("BUILDING VALIDATION SET...");
+							XLog log = new XLogImpl(new XAttributeMapImpl());
 							for (Node n : partedNodes.get(i)) {
 								List<ElementLabel> trace = partitionTrie.getVisitingPrefix(n);
 								XTrace xTrace = XESTools.toXtrace(trace, validationFI.getXFactory());
@@ -297,6 +298,7 @@ public class ModelTrieMediator extends AbstractTrieMediator {
 							validation.append((FileInfo<T>) validationFI);
 
 						} else {
+							System.out.println("BUILDING TESTING SET...");
 							XLog log = trainingFI.getXFactory().createLog();
 							for (Node n : partedNodes.get(i)) {
 								List<ElementLabel> trace = partitionTrie.getVisitingPrefix(n);
@@ -323,6 +325,8 @@ public class ModelTrieMediator extends AbstractTrieMediator {
 					validationTA = new ModelTrieAttributes<>(validationTrie, validation.getName(), validation);
 
 				} else {
+
+					List<FileInfo<T>> partitionedLog = FileInfoFactory.partition(mainFile, ta.getCVType().getK());
 
 					trainingParted.addAll(partitionedLog);
 
@@ -363,22 +367,8 @@ public class ModelTrieMediator extends AbstractTrieMediator {
 					cvMiner.setTimeout(this.timeout);
 					cvMiner.setSigDigits(this.sigDigs);
 
-					/*
-					 * MetricThread metThread = new MetricThread(cvMiner, trainingTrie);
-					 *
-					 *
-					 *
-					 * long startMining = System.nanoTime(); metThread.start();
-					 *
-					 * try { metThread.join(); } catch (InterruptedException e) {
-					 * e.printStackTrace(); }
-					 *
-					 * ((ModelTrie) trainingTrie).setup(cvMiner.getModel()); ((ModelTrie)
-					 * validationTrie).setup(cvMiner.getModel());
-					 */
 					validationTA.setInfo(cvMiner.toString());
-					// updateAllMetrics();
-					// validationTA.setName(validationTA.getName());
+
 					this.setTrieAttributes(validationTrie, validationTA);
 				}
 
@@ -440,18 +430,6 @@ public class ModelTrieMediator extends AbstractTrieMediator {
 					this.tries.add(trainingTrie);
 				}
 
-				/*
-				 * try { List<String> revPath = pathAsRevList(validation.getFile());
-				 * filePathTrie.insert(revPath, false); } catch (ProcessTransitionException e) {
-				 * // TODO Auto-generated catch block e.printStackTrace(); } catch
-				 * (LabelTypeException e) { // TODO Auto-generated catch block
-				 * e.printStackTrace(); }
-				 */
-				/*
-				 * try { addFile(validationPath); } catch (LabelTypeException e) {
-				 * e.printStackTrace(); }
-				 */
-
 				this.progObs.updateProgress(placeHolder, (double) (j + 1) / ta.getCVType().getK());
 			}
 
@@ -463,11 +441,6 @@ public class ModelTrieMediator extends AbstractTrieMediator {
 				e.printStackTrace();
 			}
 
-			// if (!containsMetric(EvaluationMetricLabel.Fitness)) {
-			// addMetric(EvaluationMetricLabel.Fitness, new String[0]);
-			// }
-			// updateAllMetrics();
-			// return false;
 			System.out.println("FINISHED SETTING UP CROSS-FOLD VALIDATION TRIES:");
 		}
 	}

@@ -10,30 +10,35 @@ import org.qmpm.logtrie.metrics.Metric;
 import org.qmpm.logtrie.trie.Trie;
 
 public class ModelSize extends Metric {
-	
+
 	String modelName = "";
 
 	public ModelSize() {
 		super();
-		setSigDigits(0);
+		this.setSigDigits(0);
 	}
-	
+
 	@Override
 	public Outcome doComputation(Trie t) throws LabelTypeException {
-		
-		GenericProcessModel pm = ((ModelTrie) t).getModel();
-		modelName = ((ModelTrie) t).getModel().getName();
-		
-		updateProgress(1.0);
-		if (getOutcome() != Outcome.CONTINUE) {
-			return getOutcome();
+
+		if (!(t instanceof ModelTrie)) {
+			return Outcome.ERROR;
+		} else {
+
+			GenericProcessModel pm = ((ModelTrie) t).getModel();
+			this.modelName = ((ModelTrie) t).getModel().getName();
+
+			this.updateProgress(1.0);
+			if (this.getOutcome() != Outcome.CONTINUE) {
+				return this.getOutcome();
+			}
+
+			this.finished();
+
+			this.value = (double) pm.getModelSize();
+
+			return Outcome.SUCCESS;
 		}
-		
-		finished();
-		
-		value = (double) pm.getModelSize();
-		
- 		return Outcome.SUCCESS;
 	}
 
 	@Override
