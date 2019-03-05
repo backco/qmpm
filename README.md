@@ -21,10 +21,9 @@ If the path to a directory is given as input, qmpm will search for all relevant 
 - Precision
 - Generalization (event-based)
 - Generalization (state-based)
-#### Upcoming
 - Cross validation
 
-These metrics are implemented as described in: *"Replaying history on process models for conformance checking and performance analysis"*, van der Aalst, et al. 2012.
+The first 3 metrics are implemented as described in: *"Replaying history on process models for conformance checking and performance analysis"*, van der Aalst, et al. 2012.
 
 ## Model formats
 #### Supported
