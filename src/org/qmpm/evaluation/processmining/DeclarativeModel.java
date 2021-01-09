@@ -7,7 +7,6 @@ import org.qmpm.evaluation.processmining.Declare2DCR;
 import org.qmpm.logtrie.elementlabel.ElementLabel;
 import org.qmpm.logtrie.exceptions.ProcessTransitionException;
 
-import datamodel.Graph;
 import minerful.concept.ProcessModel;
 import net.dcrgraphs.core.Automata;
 import net.dcrgraphs.core.DCRGraph;
@@ -126,7 +125,6 @@ public class DeclarativeModel extends GenericProcessModel {
 		
 		numOfActivities = minerfulModel.getProcessAlphabet().size();
 	}
-
 	
 	public ModelState getInitialState() {
 		return initialState;

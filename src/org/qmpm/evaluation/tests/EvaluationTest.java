@@ -28,6 +28,7 @@ import org.processmining.models.graphbased.directed.petrinet.elements.Transition
 import org.processmining.models.graphbased.directed.petrinet.impl.PetrinetFactory;
 import org.processmining.models.semantics.petrinet.Marking;
 import org.qmpm.evaluation.enums.CrossValidationType;
+import org.qmpm.evaluation.enums.EvaluationMetricLabel;
 import org.qmpm.evaluation.enums.MinerLabel;
 import org.qmpm.evaluation.metrics.Fitness;
 import org.qmpm.evaluation.metrics.GeneralizationEventBased;
@@ -37,6 +38,7 @@ import org.qmpm.evaluation.processmining.GenericProcessModel;
 import org.qmpm.evaluation.processmining.ImperativeModel;
 import org.qmpm.evaluation.trie.ModelTrie;
 import org.qmpm.evaluation.trie.ModelTrieMediator;
+import org.qmpm.logtrie.enums.MetricLabel;
 import org.qmpm.logtrie.exceptions.FileLoadException;
 //import org.qmpm.logtrie.core.Framework;
 import org.qmpm.logtrie.exceptions.LabelTypeException;
@@ -52,10 +54,10 @@ class EvaluationTest {
 	static List<Trie> tries = new ArrayList<>();
 	static List<Trie> triesFlat = new ArrayList<>();
 	static int sigDigs = 4;
-	
-	static String[] files = {"logs//WIRES_log.xes"};
+	static String[] files = {"logs//Sepsis Cases - Event Log.xes"};
 	static Petrinet petrinetM2 = PetrinetFactory.newPetrinet("test");
 	static Marking initMarkingM2 = new Marking();
+	static String[] emptyArgs = {};
 	
 	@BeforeAll
 	public static void init() {
@@ -102,16 +104,13 @@ class EvaluationTest {
 		initMarkingM2.add(start);
 	}
 	
-	//@Test
+	@Test
 	void MINERful() {
-		//ProcessModel pm = MinerManager.runMINERful("C:\\Users\\wvm405\\phd\\research\\data\\logs\\synthetic\\BPAI\\log1.xes", 1.0, 1.0, false);
-		//GenericProcessModel gpm = new DeclarativeModel(pm);
 		ModelTrieMediator modTrieMediator = new ModelTrieMediator();
-		modTrieMediator.setVerbose(true);
+		//modTrieMediator.setVerbose(true);
 		
 		try {
-			modTrieMediator.addFile("logs//WIRES_log.xes");
-			modTrieMediator.addFile("C://Users//wvm405//phd//research//data//logs//real//BPI2013//BPI_Challenge_2013_incidents_lifecycletransition_in_conceptname.xes");
+			modTrieMediator.addFile("logs//Sepsis Cases - Event Log.xes");
 
 		} catch (LabelTypeException e) {
 			// TODO Auto-generated catch block
@@ -119,58 +118,31 @@ class EvaluationTest {
 		}
 		String[] args = {"0.2", "0.1"};
 		modTrieMediator.addMiner(MinerLabel.MINERful, args);
+		modTrieMediator.addMetric(EvaluationMetricLabel.Precision, emptyArgs);
+		modTrieMediator.addMetric(EvaluationMetricLabel.GeneralizationEventBased, emptyArgs);
+		modTrieMediator.addMetric(EvaluationMetricLabel.GeneralizationStateBased, emptyArgs);
 		modTrieMediator.run();
-		
-		for (Trie t : modTrieMediator.getTries()) {
-			//ModelTrie modTrie = (ModelTrie) t;
-			//modTrie.draw();
-			Metric precision = new Precision();
-			precision.compute(t);
-			Metric genE = new GeneralizationEventBased();
-			genE.compute(t);
-			Metric genS = new GeneralizationStateBased();
-			genS.compute(t);
-			
-			System.out.println(precision.getResult() + ", " + genE.getResult() + ", " + genS.getResult());
-		}
 	}
 
-	//@Test
+	@Test
 	void MINERfulAuto() {
-		//ProcessModel pm = MinerManager.runMINERful("C:\\Users\\wvm405\\phd\\research\\data\\logs\\synthetic\\BPAI\\log1.xes", 1.0, 1.0, false);
-		//GenericProcessModel gpm = new DeclarativeModel(pm);
 		ModelTrieMediator modTrieMediator = new ModelTrieMediator();
-		modTrieMediator.setVerbose(true);
 		
 		try {
-			//modTrieMediator.addFile("logs//WIRES_log.xes");
-			//modTrieMediator.addFile("C://Users//wvm405//phd//research//data//logs//real//BPI2013//BPI_Challenge_2013_incidents_lifecycletransition_in_conceptname.xes");
-			//modTrieMediator.addFile("C://Users//wvm405//phd//research//data//logs//real//Activities of daily living of several individuals//data//dailyactivities_alllogs_lifecycletransition_in_conceptname.xes");
-			modTrieMediator.addFile("C://Users//wvm405//phd//research//data//logs//real//Sepsis Cases//Sepsis Cases - Event Log.xes");
+			modTrieMediator.addFile("logs//Sepsis Cases - Event Log.xes");
 		} catch (LabelTypeException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 		String[] args = {"0.05", "58"};
 		modTrieMediator.addMiner(MinerLabel.MINERfulAuto, args);
+		modTrieMediator.addMetric(EvaluationMetricLabel.Precision, emptyArgs);
+		modTrieMediator.addMetric(EvaluationMetricLabel.GeneralizationEventBased, emptyArgs);
+		modTrieMediator.addMetric(EvaluationMetricLabel.GeneralizationStateBased, emptyArgs);
 		modTrieMediator.run();
-		
-		for (Trie t : modTrieMediator.getTries()) {
-			ModelTrie modTrie = (ModelTrie) t;
-			//modTrie.draw();
-			Metric precision = new Precision();
-			precision.compute(t);
-			Metric genE = new GeneralizationEventBased();
-			genE.compute(t);
-			Metric genS = new GeneralizationStateBased();
-			genS.compute(t);
-			
-			System.out.println(modTrie.getModel().getName());
-			System.out.println(precision.getResult() + ", " + genE.getResult() + ", " + genS.getResult());
-		}
 	}
 	
-	//@Test
+	@Test
 	void InductiveMiner() {
 		
 		//PrintStream ps = System.out;
@@ -179,44 +151,30 @@ class EvaluationTest {
 		//Object[] pm = MinerManager.runInductiveMiner("logs\\road.xes");
 		//GenericProcessModel gpm = new ImperativeModel(pm);
 		ModelTrieMediator modTrieMediator = new ModelTrieMediator();
-		modTrieMediator.setVerbose(true);
 		
 		try {
-			//modTrieMediator.addFile("logs//WIRES_log.xes");
-			//modTrieMediator.addFile("C://Users//wvm405//phd//research//data//logs//real//BPI2013//BPI_Challenge_2013_incidents_lifecycletransition_in_conceptname.xes");
-			modTrieMediator.addFile("C://Users//wvm405//phd//research//data//logs//real//Activities of daily living of several individuals//data//dailyactivities_alllogs_lifecycletransition_in_conceptname.xes");
+			modTrieMediator.addFile("logs//Sepsis Cases - Event Log.xes");
 		} catch (LabelTypeException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		} 
 		modTrieMediator.addMiner(MinerLabel.InductiveMiner);
+		modTrieMediator.addMetric(EvaluationMetricLabel.Precision, emptyArgs);
+		modTrieMediator.addMetric(EvaluationMetricLabel.GeneralizationEventBased, emptyArgs);
+		modTrieMediator.addMetric(EvaluationMetricLabel.GeneralizationStateBased, emptyArgs);
 		modTrieMediator.run();
-		
-		for (Trie t : modTrieMediator.getTries()) {
-			//ModelTrie modTrie = (ModelTrie) t;
-			//modTrie.draw();
-			Metric precision = new Precision();
-			precision.compute(t);
-			Metric genE = new GeneralizationEventBased();
-			genE.compute(t);
-			Metric genS = new GeneralizationStateBased();
-			genS.compute(t);
-			
-			System.out.println(precision.getResult() + ", " + genE.getResult() + ", " + genS.getResult());
-		}	
 	}
 	
-	//@Test
+	@Test
 	void crossValidation() {
 		
 		//Object[] pnObj = {petrinetM2, initMarkingM2};
 		//ImperativeModel pnModel = new ImperativeModel(pnObj);
 		//ModelTrie mTrie = new ModelTrie(pnModel);
 		ModelTrieMediator mTrieMediator = new ModelTrieMediator();
-		mTrieMediator.setVerbose(true);
 		mTrieMediator.setCrossValidation(CrossValidationType.KFold, 3);
 		try {
-			mTrieMediator.addFile("C://Users//wvm405//phd//research//data//logs//real//Sepsis Cases//Sepsis Cases - Event Log.xes");
+			mTrieMediator.addFile("logs//Sepsis Cases - Event Log.xes");
 		} catch (LabelTypeException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -242,22 +200,23 @@ class EvaluationTest {
 		}		
 	}
 	
-	//@Test
+	@Test
 	void files() {
 		
 		for (int i=1; i<=10; i++) {
 			XLog log = null;
 			try {
-				log = XESTools.loadXES("C:\\Users\\wvm405\\phd\\research\\code\\qmpm\\logs\\WIRES_log-training-" + i + ".xes", true);
+				log = XESTools.loadXES("logs//Sepsis Cases - Event Log.xes", true);
 			} catch (FileLoadException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
 			System.out.println("size of training log " + i + ": " + log.size());
+			
 		}
 	}
  
-	//@Test
+	@Test
 	void iter() {
 		System.out.println("Iter");
 		List<Integer> list = new ArrayList<Integer>();
