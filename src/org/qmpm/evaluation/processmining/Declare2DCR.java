@@ -87,7 +87,7 @@ public class Declare2DCR {
 				case "not chain succession":dcrAutomata.addDCRGraph(DCRTemplateFactory.notChainSuccession(	activities, constraint.get(1), constraint.get(2))); break;
 				case "not co-existence": 	dcrAutomata.addDCRGraph(DCRTemplateFactory.notCoExistence(		activities, constraint.get(1), constraint.get(2))); break;
 				case "not succession": 		dcrAutomata.addDCRGraph(DCRTemplateFactory.notSuccession(		activities, constraint.get(1), constraint.get(2))); break;
-				case "precedence": 			dcrAutomata.addDCRGraph(DCRTemplateFactory.coExistence(			activities, constraint.get(1), constraint.get(2))); break;
+				case "precedence": 			dcrAutomata.addDCRGraph(DCRTemplateFactory.precedence(			activities, constraint.get(1), constraint.get(2))); break;
 				case "responded existence": dcrAutomata.addDCRGraph(DCRTemplateFactory.respondedExistence(	activities, constraint.get(1), constraint.get(2))); break;
 				case "response": 			dcrAutomata.addDCRGraph(DCRTemplateFactory.response(			activities, constraint.get(1), constraint.get(2))); break;
 				case "succession": 			dcrAutomata.addDCRGraph(DCRTemplateFactory.succession(			activities, constraint.get(1), constraint.get(2))); break;
