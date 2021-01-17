@@ -33,6 +33,13 @@ public class EvaluationCLI implements CLI {
 				"show progress in console (do not use if piping to output file)",
 				() -> ModelFramework.showProgress(true)));
 
+		final LambdaOption modelFileOption = new LambdaOption("l", "file", true,
+				"read model from <FILE>. Should be .decl or .pnml");
+		modelFileOption.setArgs(1);
+		modelFileOption.setArgName("FILE");
+		modelFileOption.setOperation(() -> ModelFramework.loadModelFile(modelFileOption));
+		options.addOption(modelFileOption);
+		
 		final LambdaOption timeoutOption = new LambdaOption("T", "timeout", true,
 				"set time limit for metric computation");
 		timeoutOption.setArgs(1);

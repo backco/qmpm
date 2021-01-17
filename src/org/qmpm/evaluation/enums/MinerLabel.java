@@ -3,6 +3,7 @@ package org.qmpm.evaluation.enums;
 import org.qmpm.evaluation.processmining.RunDeclareMiner;
 import org.qmpm.evaluation.processmining.RunFlowerMiner;
 import org.qmpm.evaluation.processmining.RunInductiveMiner;
+import org.qmpm.evaluation.processmining.RunLoadModel;
 import org.qmpm.evaluation.processmining.RunMINERful;
 import org.qmpm.evaluation.processmining.RunMINERfulAuto;
 import org.qmpm.evaluation.processmining.RunPetrinetTest;
@@ -14,6 +15,7 @@ public enum MinerLabel implements MetricLabel {
 	DeclareMiner("Declare Miner"),
 	InductiveMiner("Inductive Miner"),
 	FlowerMiner("Flower Miner"),
+	LoadModel("Load Model"),
 	MINERful("MINERful"),
 	MINERfulAuto("MINERful Auto-Config"),
 	PetrinetTest("Petrinet test");
@@ -42,6 +44,11 @@ public enum MinerLabel implements MetricLabel {
 			fm.setArgs(args);
 			fm.processArgs(args);
 			return fm;
+		case LoadModel:
+			RunLoadModel lm = new RunLoadModel();
+			lm.setArgs(args);
+			lm.processArgs(args);
+			return lm;	
 		case MINERful: 		
 			RunMINERful mFul = new RunMINERful();
 			mFul.setArgs(args);
